@@ -51,33 +51,33 @@ class Ship:
 class Battleship:
     def __init__(self, ships: list[Ship]) -> None:
         self.size = 10
-        self.field = [
+        self.ship_cells = [
             ["~" for _ in range(self.size)] for _ in range(self.size)
         ]
         self.ships = [Ship(start, end) for start, end in ships]
-        self.ship_cells = {}
+        self.field = {}
         self._place_ships()
         self._validate_field()
 
     def fire(self, location: tuple) -> str:
         row, column = location
-        if (row, column) not in self.ship_cells:
+        if (row, column) not in self.field:
             return "Miss!"
-        ship = self.ship_cells[(row, column)]
+        ship = self.field[(row, column)]
         if ship.fire(row, column):
             if ship.is_drowned:
                 for deck in ship.decks:
-                    self.field[deck.row][deck.column] = "x"
+                    self.ship_cells[deck.row][deck.column] = "x"
                 return "Sunk!"
-            self.field[row][column] = "*"
+            self.ship_cells[row][column] = "*"
             return "Hit!"
         return "Miss!"
 
     def _place_ships(self) -> None:
         for ship in self.ships:
             for deck in ship.decks:
-                self.field[deck.row][deck.column] = u"\u25A1"
-                self.ship_cells[(deck.row, deck.column)] = ship
+                self.ship_cells[deck.row][deck.column] = u"\u25A1"
+                self.field[(deck.row, deck.column)] = ship
 
     def _validate_field(self) -> None:
         if len(self.ships) != 10:
@@ -91,7 +91,7 @@ class Battleship:
             raise ValueError("Ships must not be adjacent")
 
     def print_field(self) -> None:
-        for row in self.field:
+        for row in self.ship_cells:
             print(" ".join(row))
 
     def _check_no_adjacent_ships(self) -> bool:
@@ -99,11 +99,11 @@ class Battleship:
             (-1, -1), (-1, 0), (-1, 1), (0, -1),
             (0, 1), (1, -1), (1, 0), (1, 1)
         ]
-        for (x_coord, y_coord) in self.ship_cells:
+        for (x_coord, y_coord) in self.field:
             for dx, dy in directions:
                 nx, ny = x_coord + dx, y_coord + dy
                 if ((0 <= nx < self.size and 0 <= ny < self.size)
-                        and (nx, ny) in self.ship_cells and self.ship_cells[
-                            (nx, ny)] != self.ship_cells[(x_coord, y_coord)]):
+                        and (nx, ny) in self.field and self.field[
+                            (nx, ny)] != self.field[(x_coord, y_coord)]):
                     return False
         return True
