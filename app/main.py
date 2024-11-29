@@ -49,12 +49,18 @@ class Ship:
 
 
 class Battleship:
-    def __init__(self, ships: list[Ship]) -> None:
+    def __init__(self, ships: list[tuple[tuple[int, int]]]) -> None:
         self.size = 10
         self.ship_cells = [
             ["~" for _ in range(self.size)] for _ in range(self.size)
         ]
-        self.ships = [Ship(start, end) for start, end in ships]
+        if all(
+                isinstance(cords, tuple) and len(cords) == 2
+                for ship in ships for cords in ship
+        ):
+            self.ships = [
+                Ship(start, end) for start, end in ships
+            ]
         self.field = {}
         self._place_ships()
         self._validate_field()
@@ -83,16 +89,14 @@ class Battleship:
         if len(self.ships) != 10:
             raise ValueError("Total number of ships must be 10")
         ship_lengths = [len(ship.decks) for ship in self.ships]
-        if ((ship_lengths.count(1) != 4 or ship_lengths.count(2) != 3)
-                or ship_lengths.count(3) != 2 or ship_lengths.count(
-                4) != 1):
+        if (
+                (ship_lengths.count(1) != 4 or ship_lengths.count(2) != 3)
+                or (ship_lengths.count(3) != 2)
+                or (ship_lengths.count(4) != 1)
+        ):
             raise ValueError("Invalid number of ships of each type")
         if not self._check_no_adjacent_ships():
             raise ValueError("Ships must not be adjacent")
-
-    def print_field(self) -> None:
-        for row in self.ship_cells:
-            print(" ".join(row))
 
     def _check_no_adjacent_ships(self) -> bool:
         directions = [
@@ -107,3 +111,7 @@ class Battleship:
                             (nx, ny)] != self.field[(x_coord, y_coord)]):
                     return False
         return True
+
+    def print_field(self) -> None:
+        for row in self.ship_cells:
+            print(" ".join(row))
